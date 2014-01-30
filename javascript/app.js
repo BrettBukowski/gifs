@@ -1,7 +1,18 @@
 /* global gifs*/
 !function () {
 
+  var loading = false;
+
+  document.querySelector('#gifs img').onload = function () {
+    document.querySelector('#gifs i').classList.remove('spin');
+    loading = false;
+  };
+
   function random () {
+    if (loading) return;
+
+    loading = true;
+    document.querySelector('#gifs i').classList.add('spin');
     var ran = gifs[Math.floor(Math.random() * gifs.length)];
     document.querySelector('#gifs img').src = ran;
     document.querySelector('#gifs a').href = ran;
