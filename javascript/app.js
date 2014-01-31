@@ -66,11 +66,10 @@
 
     window.scrollTo(0, 100);
 
-    window.history.pushState(category, category, category);
+    window.history.pushState(category, category, '#' + category);
   };
 
   var randomize = new Randomizer();
-  randomize.loadRandom();
 
   var list = new GifList();
 
@@ -111,12 +110,12 @@
   new Links();
 
   window.onpopstate = function (e) {
-    if (!e.state) {
+    if (!e.state && !window.location.hash) {
       randomize.show();
       list.hide();
     }
     else {
-      Links.loadGifList(e.state);
+      Links.loadGifList(e.state || window.location.hash.substr(1));
     }
   };
 }();
