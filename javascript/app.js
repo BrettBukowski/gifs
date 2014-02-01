@@ -1,5 +1,26 @@
 /* global gifs*/
 !function () {
+  var Event = {
+    _events: {},
+
+    fire: function (name) {
+      if (name in this._events) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        this._events[name].forEach(function (cb) {
+          cb.apply(null, args);
+        });
+      }
+    },
+
+    on: function (name, cb) {
+      if (!(name in this._events)) {
+        this._events[name] = [];
+      }
+
+      this._events[name].push(cb);
+    }
+  };
+
   function Randomizer () {
     this.loading = false;
     this.el = document.getElementById('random');
@@ -55,9 +76,9 @@
   GifList.prototype.show = function () {
     this.el.classList.remove('hide');
   };
-
   GifList.prototype.loadCategory = function (category) {
-    this.el.innerHTML = '<h2>' + category.replace(/-/g, ' ').toUpperCase() + '</h2>';
+    var displayName = category.replace(/-/g, ' ').toUpperCase();
+    this.el.innerHTML = '<h2>' + displayName + '</h2>';
 
     var categoryList = GifList.getCategory(category);
     this.el.innerHTML += categoryList.map(function (path) {
@@ -66,12 +87,12 @@
 
     window.scrollTo(0, 100);
 
-    window.history.pushState(category, category, '#' + category);
+    document.title = displayName;
+
+    if (window.history.state != category) {
+      window.history.pushState(category, category, '#' + category);
+    }
   };
-
-  var randomize = new Randomizer();
-
-  var list = new GifList();
 
   function Links () {
     this.el = document.getElementById('links');
@@ -98,24 +119,40 @@
   Links.prototype.onClick = function (e) {
     if (e.target.tagName == 'A') {
       e.preventDefault();
-      Links.loadGifList(e.target.text);
+      Event.fire('loadGifs', e.target.text);
     }
   };
-  Links.loadGifList = function (category) {
-    list.loadCategory(category);
-    randomize.hide();
-    list.show();
+
+  function App () {
+    this.initialized = false;
+
+    this.randomize = new Randomizer();
+    this.list = new GifList();
+    this.links = new Links();
+
+    window.onpopstate = this.onpopstate.bind(this);
+    Event.on('loadGifs', this.loadGifList.bind(this));
+
+    if (!this.initialized) {
+      this.randomize.loadRandom();
+    }
+  }
+  App.prototype.loadGifList = function (category) {
+    this.list.loadCategory(category);
+    this.randomize.hide();
+    this.list.show();
   };
-
-  new Links();
-
-  window.onpopstate = function (e) {
+  App.prototype.onpopstate = function (e) {
     if (!e.state && !window.location.hash) {
-      randomize.show();
-      list.hide();
+      this.randomize.show();
+      this.list.hide();
     }
     else {
-      Links.loadGifList(e.state || window.location.hash.substr(1));
+      this.loadGifList(e.state || window.location.hash.substr(1));
     }
+    this.initialized = true;
   };
+
+  new App();
+
 }();
