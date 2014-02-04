@@ -82,7 +82,7 @@
 
     var categoryList = GifList.getCategory(category);
     this.el.innerHTML += categoryList.map(function (path) {
-      return '<a href="' + path + '"><img src="' + path + '" alt=""/></a>';
+      return '<div><a href="' + path + '"><img src="' + path + '" alt=""/></a></div>';
     }).join('');
 
     window.scrollTo(0, 100);
