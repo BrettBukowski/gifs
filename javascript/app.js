@@ -13,19 +13,15 @@
     },
 
     on: function (name, cb) {
-      if (!(name in this._events)) {
-        this._events[name] = [];
-      }
+      (name in this._events) || (this._events[name] = []);
 
       this._events[name].push(cb);
     }
   };
 
   function Randomizer () {
-    this.loading = false;
     this.el = document.getElementById('random');
 
-    this.el.querySelector('img').onload = this.onLoad.bind(this);
     this.el.querySelector('#again').addEventListener('click', this.onClick.bind(this));
   }
   Randomizer.prototype.hide = function () {
@@ -39,18 +35,20 @@
     this.loadRandom();
   };
   Randomizer.prototype.onLoad = function () {
+    var link = this.el.querySelector('a');
+    link.href = this.loading.src;
+    link.replaceChild(this.loading, link.querySelector('img'));
     this.el.querySelector('i').classList.remove('spin');
-    this.loading = false;
+    this.loading = null;
   };
   Randomizer.prototype.loadRandom = function () {
     if (this.loading) return;
 
-    this.loading = true;
+    this.loading = document.createElement('img');
+    this.loading.onload = this.onLoad.bind(this);
 
     this.el.querySelector('i').classList.add('spin');
-    var random = this.getRandom();
-    this.el.querySelector('img').src = random;
-    this.el.querySelector('a').href = random;
+    this.loading.src = this.getRandom();
   };
   Randomizer.prototype.getRandom = function () {
     return gifs[Math.floor(Math.random() * gifs.length)];
