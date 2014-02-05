@@ -1,4 +1,4 @@
-/* global gifs*/
+/* global gifs,$,Bloodhound*/
 !function () {
   var Event = {
     _events: {},
@@ -39,16 +39,30 @@
     link.href = this.loading.src;
     link.replaceChild(this.loading, link.querySelector('img'));
     this.el.querySelector('i').classList.remove('spin');
+
+    if (this.updateHistory) {
+      var path = this.loading.src.substr(window.location.origin.length, this.loading.src.length - 4);
+
+      document.title = path.split('/').pop();
+
+      if (history.state != path) {
+        window.history.pushState(path, path, '#' + path);
+      }
+    }
     this.loading = null;
   };
-  Randomizer.prototype.loadRandom = function () {
+  Randomizer.prototype.load = function (path, updateHistory) {
     if (this.loading) return;
 
     this.loading = document.createElement('img');
+    this.updateHistory = updateHistory;
     this.loading.onload = this.onLoad.bind(this);
 
     this.el.querySelector('i').classList.add('spin');
-    this.loading.src = this.getRandom();
+    this.loading.src = path;
+  };
+  Randomizer.prototype.loadRandom = function () {
+    this.load(this.getRandom());
   };
   Randomizer.prototype.getRandom = function () {
     return gifs[Math.floor(Math.random() * gifs.length)];
@@ -83,8 +97,6 @@
       return '<div><a href="' + path + '"><img src="' + path + '" alt=""/></a></div>';
     }).join('');
 
-    window.scrollTo(0, 100);
-
     document.title = displayName;
 
     if (window.history.state != category) {
@@ -110,7 +122,7 @@
     return categories;
   };
   Links.prototype.populate = function (categories) {
-    this.el.innerHTML = categories.map(function (category) {
+    this.el.innerHTML += categories.map(function (category) {
       return '<section><a href="/' + category + '">' + category + '</a></section>';
     }).join('');
   };
@@ -130,15 +142,24 @@
 
     window.onpopstate = this.onpopstate.bind(this);
     Event.on('loadGifs', this.loadGifList.bind(this));
+    Event.on('loadGif', this.loadGif.bind(this));
 
     if (!this.initialized) {
       this.randomize.loadRandom();
     }
   }
+  App.prototype.loadGif = function (path) {
+    this.list.hide();
+    this.randomize.load(path, true);
+    this.randomize.show();
+    window.scrollTo(0, 100);
+  };
   App.prototype.loadGifList = function (category) {
     this.list.loadCategory(category);
     this.randomize.hide();
     this.list.show();
+    window.scrollTo(0, 100);
+    $('form input').typeahead('val', '');
   };
   App.prototype.onpopstate = function (e) {
     if (!e.state && !window.location.hash) {
@@ -146,11 +167,36 @@
       this.list.hide();
     }
     else {
-      this.loadGifList(e.state || window.location.hash.substr(1));
+      var state = e.state || window.location.hash.substr(1);
+      if (state.indexOf('/') > -1) {
+        this.loadGif(state);
+      }
+      else {
+        this.loadGifList(state);
+      }
     }
     this.initialized = true;
   };
 
   new App();
+
+  var bh = new Bloodhound({
+    datumTokenizer: function (d) {
+      return Bloodhound.tokenizers.nonword(d.value);
+    },
+    queryTokenizer: Bloodhound.tokenizers.nonword,
+    local: gifs.map(function (a) { return { value: a.replace(/-/g, ' ').substr(0, a.length - 4).replace(/\//g, ' ☞ '), raw: a }; })
+  });
+
+  bh.initialize();
+
+  $('form input').typeahead({
+    highlight: true,
+    autoselect: true
+  }, {
+    source: bh.ttAdapter()
+  }).on('typeahead:selected', function (e, suggest) {
+    Event.fire('loadGif', suggest.raw);
+  });
 
 }();

@@ -1,1 +1,13 @@
 .DS_Store
+javascript/vendor/jquery/
+javascript/vendor/typeahead.js/src/
+javascript/vendor/typeahead.js/test/
+javascript/vendor/typeahead.js/doc/
+javascript/vendor/typeahead.js/.*
+javascript/vendor/typeahead.js/*.json
+javascript/vendor/typeahead.js/*.md
+javascript/vendor/typeahead.js/*.js
+javascript/vendor/typeahead.js/LICENSE
+javascript/vendor/typeahead.js/dist/bloodhound.js
+javascript/vendor/typeahead.js/dist/typeahead.bundle.js
+javascript/vendor/typeahead.js/dist/typeahead.jquery.js
