@@ -123,7 +123,7 @@
   };
   Links.prototype.populate = function (categories) {
     this.el.innerHTML += categories.map(function (category) {
-      return '<section><a href="/' + category + '">' + category + '</a></section>';
+      return '<section><a href="/#' + category + '">' + category + '</a></section>';
     }).join('');
   };
   Links.prototype.onClick = function (e) {
