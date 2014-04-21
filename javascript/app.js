@@ -72,6 +72,7 @@
     this.el = document.getElementById('list');
   }
   GifList.getCategory = function (category) {
+    category += '/';
     var categoryList = [];
 
     gifs.forEach(function (path) {
